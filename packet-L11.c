@@ -1,20 +1,10 @@
 /* packet-L11.c
-* Routines for Link 11 message dissection (STANAG 5511)
-* Initiated by Pierre-Henri BOURDELLE  <pierre-henri.bourdelle@orange.fr>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * 
+ * Routines for Link 11 message dissection (STANAG 5511)
+ * Copyright 17/09/2015   Pierre-Henri BOURDELLE <pierre-henri.bourdelle@hotmail.fr>
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
 */
 
 #ifdef HAVE_CONFIG_H
@@ -30,7 +20,7 @@
 #include <string.h>
 # include "packet-L11.h"
 
-#define PROTO_TAG_L11	"L11"
+#define PROTO_TAG_L11	"L11 PHB"
 
 /* Wireshark ID of the L11 protocol */
 static int proto_l11 = -1;
@@ -92,7 +82,7 @@ void proto_reg_handoff_l11(void)
 	static gboolean initialized=FALSE;
 
 	if (!initialized) {
-		link11_handle = new_create_dissector_handle(dissect_l11, proto_l11);
+		link11_handle = create_dissector_handle(dissect_l11, proto_l11);
 		dissector_add_uint("tcp.port", global_link11_port, link11_handle);
 		dissector_add_uint("udp.port", global_link11_port, link11_handle);
 	}
@@ -116,7 +106,7 @@ static hf_register_info hf[] = {
 	"Simulation  Indicator", HFILL }}
 };
 
-static const int *l11_M_fields[][15] = {
+static int* const l11_M_fields[][15] = {
 	{&hf_type,//M0
 	NULL
 	},
@@ -186,11 +176,11 @@ void proto_register_l11 (void)
 		&ett_l11,
 	};
 
-	proto_l11 = proto_register_protocol ("Link11 Protocol", "Link11", "l11");
+	proto_l11 = proto_register_protocol ("PHB SIMPLE Link11 Protocol", "PHB SIMPLE Link11", "simple_l11");
 
 	proto_register_field_array (proto_l11, hf, array_length (hf));
 	proto_register_subtree_array (ett, array_length (ett));
-	new_register_dissector("l11", dissect_l11, proto_l11);
+	register_dissector("l11", dissect_l11, proto_l11);
 
 }
 	
@@ -220,7 +210,6 @@ static gint dissect_l11(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, voi
 
 	if (tree&&taille) { /* we are being asked for details */
 		guint32 offset = 0;
-		guint32 length = 0;
 		
 
 		link11_item = proto_tree_add_item(tree, proto_l11, tvb, 0, -1, FALSE);
