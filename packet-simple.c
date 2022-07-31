@@ -1,35 +1,9 @@
 /* packet-simple.c
+* Copyright 17/09/2015   Pierre-Henri BOURDELLE <pierre-henri.bourdelle@hotmail.fr>
 * Routines for simple message dissection (STANAG 5602)
-* Initiated by Pierre-Henri BOURDELLE  <pierre-henri.bourdelle@orange.fr>
 *
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
-/* packet-simple.c
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+* SPDX-License-Identifier: GPL-2.0-or-later
+* 
 */
  
 #ifdef HAVE_CONFIG_H
@@ -66,7 +40,7 @@ static dissector_table_t l16_dissector_table = NULL;
 static dissector_table_t link11_dissector_table = NULL;
 static dissector_table_t dis_dissector_table = NULL;
 static dissector_handle_t simple_handle;
-int dissect_simple(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree);
+int dissect_simple(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data _U_);
 
 static int global_simple_port = 1033;
 static int global_dis_port = 10435;
@@ -851,30 +825,32 @@ static char * traduire_numero_piste(unsigned long numero_piste, char *s)
 }
 
 
-void proto_reg_handoff_simple(void)
-{
-	static gboolean initialized=FALSE;
-
-	if (!initialized) {
-
-		simple_handle = create_dissector_handle(dissect_simple, proto_simple);
-		dissector_add_uint("tcp.port", global_simple_port, simple_handle);
-		dissector_add_uint("udp.port", global_simple_port, simple_handle);
-	}
-
-	if (!dis_handle)
-	{
-		dis_handle  = find_dissector("dis_simple");
-	}
-	if (!l16_handle)
-			l16_handle  = find_dissector("l16");
-	if (!link11_handle)
-			link11_handle  = find_dissector("l11");
-}
-
 #pragma optimize("", off)
  
+void proto_reg_handoff_simple(void)
+{
+    static gboolean initialized = FALSE;
+    static dissector_handle_t simple_handle;
 
+    if (!initialized) {
+
+        simple_handle = create_dissector_handle(dissect_simple, proto_simple);
+        dissector_add_uint("tcp.port", global_simple_port, simple_handle);
+        dissector_add_uint("udp.port", global_simple_port, simple_handle);
+    }
+
+    if (!dis_handle)
+    {
+        dis_handle = find_dissector("simple_dis");
+    }
+    if (!l16_handle)
+        l16_handle = find_dissector("simple_l16");
+    if (!link11_handle)
+        link11_handle = find_dissector("simple_l11");
+    //dissector_table_t table = register_custom_dissector_table("SIMPLE", "SIMPLE", proto_simple);
+    //register_dissector_table()
+    //    dissector_add_custom_table_handle()
+}
 void proto_register_simple (void)
 {
 	/* A header field is something you can search/filter on.
@@ -977,8 +953,11 @@ void proto_register_simple (void)
 
 #pragma optimize("", on)
 
+
+
+
 static int 
-dissect_simple(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
+dissect_simple(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data _U_)
 {
 	T_ProtocoleSimplePrive *prive;
     T_SimpleData *simple;
@@ -986,15 +965,15 @@ dissect_simple(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
 	guint16 length   = 0;
 	guint16 donnee16   = 0;
 	guint8  donnee8   = 0;
-	guint32  donnee32   = 0;
-	guint64  donnee64   = 0;
+	//guint32  donnee32   = 0;
+	//guint64  donnee64   = 0;
 	int encoding =0;
 	int t =0;
 	int type=0 ;
 	static stn_s[6];
 	const int c_increment8  =1;
 	const int c_increment16 =2;
-	const int c_increment32 =4;
+	//const int c_increment32 =4;
 
 	prive = &s_SimplePrive;
 
@@ -1072,7 +1051,7 @@ dissect_simple(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
 		proto_item *simple_item        = NULL;
 		proto_item *simple_sub_item[e_nombre_champs] ;
 		proto_tree *simple_tree[e_nombre_champs] ; 
-		proto_tree *simple_network_tree = NULL; 
+		//proto_tree *simple_network_tree = NULL; 
 		guint32 offset = 0;
 		int i = 0;
 		int taille_paquet = 0;
@@ -1168,7 +1147,9 @@ dissect_simple(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
 			offset += 2;
 			proto_tree_add_item(simple_tree[e_link16], simple->link_16.hf.stn, tvb, offset, 2, simple->encoding);
 			tvb_memcpy(tvb, &donnee16, offset, c_increment16);prive->link16_state.header.stn = (int)(donnee16&0xffff);
-			proto_tree_add_text(simple_tree[e_link16], tvb, offset, 2,"STN=%s",traduire_numero_piste((long)(donnee16&0xffff),(char *)stn_s));
+			//proto_tree_add_text(simple_tree[e_link16], tvb, offset, 2,"STN=%s",traduire_numero_piste((long)(donnee16&0xffff),(char *)stn_s));
+            proto_tree_add_subtree_format(simple_tree[e_link16], tvb, offset, 2, simple->link_16.ett.stn, NULL,  "STN=%s", traduire_numero_piste((long)(donnee16 & 0xffff), (char*)stn_s));
+
 			offset += 2;
 			proto_tree_add_item(simple_tree[e_link16], simple->link_16.hf.word_count, tvb, offset, 2, simple->encoding);
 			offset += 2;
@@ -1190,7 +1171,8 @@ dissect_simple(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
 			offset += 1;
 			proto_tree_add_item(simple_tree[e_link11], simple->link_11.hf.pu, tvb, offset, 1, simple->encoding);
 			tvb_memcpy(tvb, &donnee8, offset, c_increment8);  prive->link11_state.stn = donnee8;
-			proto_tree_add_text(simple_tree[e_link11], tvb, offset, 1,"PU=%s",traduire_numero_piste((long)(donnee8&0xff),(char *)stn_s));
+			//proto_tree_add_text(simple_tree[e_link11], tvb, offset, 1,"PU=%s",traduire_numero_piste((long)(donnee8&0xff),(char *)stn_s));
+            proto_tree_add_subtree_format(simple_tree[e_link11], tvb, offset, 1, simple->link_11.ett.pu, NULL, "PU=%s", traduire_numero_piste((long)(donnee16 & 0xff), (char*)stn_s));
 			offset += 1;
 			tvb_memcpy(tvb, &donnee8, offset, c_increment8); 
 			proto_tree_add_item(simple_tree[e_link11], simple->link_11.hf.word_count, tvb, offset, 1, simple->encoding);
