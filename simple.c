@@ -1,3 +1,11 @@
+/* packet-simple.h
+* Copyright 17/09/2015  Pierre-Henri BOURDELLE <pierre-henri.bourdelle@hotmail.fr>
+*
+* Routines for simple message dissection (STANAG 5602)
+* 
+* SPDX-License-Identifier: GPL-2.0-or-later
+*
+*/
 #include "simple.h"
 typedef const gchar T_Texte;
 
@@ -114,7 +122,6 @@ value_string SimpleLibelle_l16_sync_status[] =
 	2 ,"Confidential", 
 	3 ,"Coarse Sync", 
 	4 ,"Fine Sync", 
-	5 ,"NATO Secret", 
 	0 ,NULL
 };
 value_string SimpleLibelle_l16_role[] = 
