@@ -14,8 +14,8 @@ typedef struct {
     guint number_of_segments;
 	char segments[10000];
 	int taille;
-	int subtype;
-	int stn;
+        int subtype;
+        int stn;
 }L11State;
 #ifdef __cplusplus
 }
