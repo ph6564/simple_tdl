@@ -1,24 +1,12 @@
 
 /* packet-l16.c
- * Routines for Link 16 message dissection (MIL-STD-6016)
- * William Robertson <aliask@gmail.com>
- * Peter Ross <peter.ross@dsto.defence.gov.au>
- * updated by Pierre-Henri BOURDELLE  <pierre-henri.bourdelle@orange.fr>
- * for simple dissection.
+ * Routines for Link 16 in SIMPLE messages  dissection (MIL-STD-6016)
+ * initialised by William Robertson <aliask@gmail.com>
+ * and Peter Ross <peter.ross@dsto.defence.gov.au>
+ * Copyright 17/09/2015   Pierre-Henri BOURDELLE <pierre-henri.bourdelle@hotmail.fr>
+ * 
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 #include "config.h"
@@ -185,7 +173,7 @@ static gint hf_L16_contlabel = -1;
 
 static gint ett_L16 = -1;
 
-static const int *l16_initial_word_fields[] = {
+static  int* const l16_initial_word_fields[] = {
     &hf_L16_wordformat,
     &hf_L16_label,
     &hf_L16_sublabel,
@@ -193,18 +181,18 @@ static const int *l16_initial_word_fields[] = {
     NULL
 };
 
-static const int * l16_continuation_word_fields[] = {
+static  int* const  l16_continuation_word_fields[] = {
     &hf_L16_wordformat,
     &hf_L16_contlabel,
     NULL
 };
 
-static const int * l16_extension_or_other_word_fields[] = {
+static  int * const  l16_extension_or_other_word_fields[] = {
     &hf_L16_wordformat,
     NULL
 };
 
-static const int ** l16_fields[4] = {
+static  int* const *  l16_fields[4] = {
     l16_initial_word_fields,
     l16_continuation_word_fields,
     l16_extension_or_other_word_fields,
@@ -332,10 +320,10 @@ void proto_register_L16(void)
         &ett_L16,
     };
 
-    proto_L16 = proto_register_protocol("Simple Link 16", "LINK16 SIMPLE", "l16");
+    proto_L16 = proto_register_protocol("SIMPLE Link 16", "SIMPLE Link16", "simple_l16");
     proto_register_field_array(proto_L16, hf, array_length (hf));
     proto_register_subtree_array(ett, array_length(ett));
-    new_register_dissector("l16", dissect_L16, proto_L16);
+    register_dissector("phb_l16", dissect_L16, proto_L16);
 }
 
 /*
