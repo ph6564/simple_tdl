@@ -315,7 +315,6 @@ extern value_string SimpleLibelleL16SubType[];
 extern value_string SimpleLibelle_l11_status[]; 
 extern value_string SimpleLibelle_l11_dts_type[]; 
 extern value_string SimpleLibelle_l11_role[]; 
-extern value_string SimpleLibelleSubtypeL11[]; 
 extern value_string SimpleLibelle_l16_role[]; 
 extern value_string SimpleLibelle_l16_sync_status[]; 
 extern value_string SimpleLibelle_l16_terminal_host_status[]; 
